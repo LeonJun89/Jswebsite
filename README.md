@@ -6,8 +6,8 @@ This Github page contains some demonstrations of my works:
 
 (2) XGBoost using Python
 
-(3) some __Tableau__ Practice
-https://public.tableau.com/profile/leonj#!/vizhome/tb4w4_021620_jz/Presentation
+(3) some __Tableau__ Practice \
+link: https://public.tableau.com/profile/leonj#!/vizhome/tb4w4_021620_jz/Presentation
 
 You can use the [editor on GitHub](https://github.com/LeonJun89/Jswebsite/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
