@@ -2,7 +2,7 @@
 
 This Github page contains some demonstrations of my works:
 
-(1) EDA using Python
+(1) [EDA using Python](https://github.com/LeonJun89/Jswebsite/blob/master/Titanic-EDA.ipynb)
 
 (2) XGBoost using Python
 
