@@ -11,7 +11,8 @@ link: https://public.tableau.com/profile/leonj#!/vizhome/tb4w4_021620_jz/Present
 
 (4) [A/B testing project](https://github.com/LeonJun89/Jswebsite/blob/master/Udacity_ABTesting.ipynb)
 
+(5) [Neural Style Transfer using TensorFlow](https://github.com/LeonJun89/Jswebsite/blob/master/NST_v3.ipynb)
 
 ### Contact
-Email: jz3036@cumc.columbia.edu
+Email: junyuanz3036@gmail.com
 
