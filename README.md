@@ -10,6 +10,8 @@
 
 (4) [Neural Style Transfer using TensorFlow](https://github.com/LeonJun89/Jswebsite/blob/master/NST_v3.ipynb)
 
+(5) [EDA of an Object Detection task](https://github.com/LeonJun89/Jswebsite/blob/master/GlobalWheatDetection_EDA.ipynb)
+
 ### Contact
 Email: junyuanz3036@gmail.com
 
