@@ -12,6 +12,8 @@
 
 (5) [EDA of an Object Detection task using Python and TensorFlow](https://github.com/LeonJun89/Jswebsite/blob/master/GlobalWheatDetection_EDA.ipynb)
 
+(6) [Image classification on simplified CT images of Intracranial Hemorrhage (ICH)](https://github.com/LeonJun89/Jswebsite/blob/master/ICH_classification_1.ipynb)
+
 ### Contact
 Email: junyuanz3036@gmail.com
 
