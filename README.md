@@ -1,6 +1,8 @@
-## Welcome to Junyuan's GitHub Pages
+# Welcome to Junyuan's GitHub Pages
 
-### This Github page contains some demonstrations of my works:
+## This Github page contains some demonstrations of my works:
+
+### Python
 
 (1) [EDA using Python](https://github.com/LeonJun89/Jswebsite/blob/master/Titanic-EDA.ipynb)
 
@@ -13,6 +15,10 @@
 (5) [EDA of an Object Detection task using Python and TensorFlow](https://github.com/LeonJun89/Jswebsite/blob/master/GlobalWheatDetection_EDA.ipynb)
 
 (6) [Image classification on simplified CT images of Intracranial Hemorrhage (ICH)](https://github.com/LeonJun89/Jswebsite/blob/master/ICH_classification_1.ipynb)
+
+### R
+
+(1) [EDA using R](https://github.com/LeonJun89/Jswebsite/blob/master/Titanic-EDA_R.pdf)
 
 ### Contact
 Email: junyuanz3036@gmail.com
