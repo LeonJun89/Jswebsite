@@ -1,0 +1,408 @@
+---
+title: "EDA with R"
+output: pdf_document
+author: "Junyuan Zheng"
+date: '2020-12-07'
+---
+
+
+```{r}
+library(tidyverse)
+library(patchwork) # combining panels
+library(ggbeeswarm) # swarmplot
+library(corrplot) # plotting correlation matrix
+```
+
+# Preprocessing
+
+## 1.1 Data import
+
+```{r}
+data_train = read_csv("./dataset/train.csv") # lib(readr)
+```
+
+```{r}
+is.data.frame(data_train) # lib(base)
+```
+
+## 1.2 A Glimpse of the Data
+
+```{r}
+head(data_train, 5) # lib(utils)
+```
+
+```{r}
+# structure of the data
+str(data_train) # lib(utils)
+```
+
+* __Note__ that some default data type is not appropriate, such as 'Survived', 'Pclass'.
+
+```{r}
+# dimension
+dim(data_train) # lib(base)
+```
+* __`r dim(data_train)[1]`__ rows.
+* `r dim(data_train)[2]` cols.
+
+```{r}
+summary(data_train) # lib(base)
+```
+
+```{r}
+# check frequency for categorical variables
+table(data_train$Survived)
+```
+
+
+```{r}
+# two-way table
+surv_sex = table(data_train$Survived, data_train$Sex) # lib(base); -> vector
+surv_sex
+matrix(surv_sex, nrow=2,
+       dimnames = list(c("notSurv", "surv"),
+                       c("female", "male")))
+```
+
+```{r}
+# three-way table
+surv_sex = xtabs(~ Survived + Sex + Pclass, data=data_train) # lib(stats) -> matrix, array
+surv_sex
+is.array(surv_sex)
+```
+
+
+## 1.3 Check for Duplicates
+
+```{r}
+# check duplicates
+sum(duplicated(data_train)) # lib(base)
+```
+
+```{r}
+# check unique
+unique(data_train) %>% 
+  nrow()
+```
+
+* There is no duplicates in the original data.
+
+```{r}
+# remove duplicates
+data_train %>% 
+  distinct()  # lib(dplyr)
+```
+```{r}
+# drop any row with NA
+data_train %>% 
+  drop_na()
+```
+
+## 1.4 Check for Missing Values
+
+```{r}
+is.na(data_train) %>% # lib(base)
+  summary()
+```
+
+```{r}
+is.na(data_train) %>% 
+  as.data.frame() %>% 
+  colSums() / nrow(data_train) # lib(base)
+```
+
+* Age, Cabin, Embarked have missing values.
+
+```{r}
+# check the proportion of missingness in 'Age' on 'Survived'
+data_train %>% 
+  mutate(age_missing = is.na(Age)) %>% 
+  xtabs(~ Survived + age_missing, data = .) %>%
+  prop.table(1) # lib(base)
+
+# addmargins() # lib(stat)
+```
+
+## 1.5 Exploratory Analysis
+
+### 1.5.1 'Age'
+
+```{r}
+# base R
+hist_age = 
+hist(data_train$Age, # lib(graphics)
+     breaks = 50,
+     col = "#00BFC4",
+     border = "black",
+     xlim = c(0, 90),
+     xaxp = c(0, 90, 18),
+     ylim = c(0, 60),
+     yaxp = c(0, 100, 10),
+     main = "Age",
+     xlab = "age",
+     ylab = "count")
+```
+```{r}
+#hist_age
+#plot(hist_age)
+```
+
+
+```{r}
+# ggplot2
+data_train %>% 
+  filter(!is.na(Age)) %>% # filter out NA values
+  ggplot(aes(x = Age)) +
+  geom_histogram(bins = 50, fill = "#00BFC4", color = "black") +
+  scale_x_continuous(breaks = seq(0, 90, 5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  labs(
+    title = "Age",
+    x = "age",
+    y = "count"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) + # center title
+  geom_rug(alpha = 0.5, size = 0.2)
+```
+
+```{r}
+# 'Age' vs. 'Survived'
+data_train %>% 
+  filter(!is.na(Age)) %>% # filter out NA values
+  ggplot(aes(x = Age)) +
+  geom_histogram(bins = 50, aes(fill = as.factor(Survived)), position = "dodge") +
+  scale_x_continuous(breaks = seq(0, 90, 5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  labs(
+    title = "Age",
+    x = "age",
+    y = "count"
+    #fill = "Survived"
+  ) +
+  scale_fill_manual(name = "Survived", values=c("#FF6C90", "#00BFC4"), labels = c("0surv", "1surv")) +
+  theme(plot.title = element_text(hjust = 0.5)) + # center title
+  geom_rug(alpha = 0.5, size = 0.2) +
+  geom_density(aes(y = ..count.., fill = as.factor(Survived)), alpha = 0.5)
+```
+
+```{r}
+# 'Age' vs. 'Survived'
+data_train %>% 
+  filter(!is.na(Age)) %>% # filter out NA values
+  ggplot(aes(x = Age, fill = as.factor(Survived))) +
+  geom_histogram(bins = 50) +
+  scale_x_continuous(breaks = seq(0, 90, 5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  labs(
+    title = "Age",
+    x = "age",
+    y = "count"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) + # center title
+  geom_rug(alpha = 0.5, size = 0.2) +
+  facet_grid(. ~ as.factor(Survived)) +
+  scale_fill_manual(name = "Survived", values=c("#FF6C90", "#00BFC4"), labels = c("notSurvived", "Survived")) +
+  geom_density(aes(y = ..count.., fill = as.factor(Survived)), alpha = 0.5)
+```
+
+```{r}
+# 'Age' vs. 'Survived'
+# patchwork
+# library(patchwork)
+surv0_age = 
+  data_train %>%
+  filter(!is.na(Age)) %>% 
+  filter(Survived == 0) %>% 
+  ggplot(aes(x = Age)) +
+  geom_histogram(bins = 50, fill = "#FF6C90") +
+  scale_x_continuous(breaks = seq(0, 90, 5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  labs(
+    title = "Survived = 0",
+    x = "age",
+    y = "count"
+  ) +
+  geom_density(aes(y = ..count..))
+
+surv1_age = 
+  data_train %>%
+  filter(!is.na(Age)) %>%  
+  filter(Survived == 1) %>% 
+  ggplot(aes(x = Age)) +
+  geom_histogram(bins = 50, fill = "#00BFC4") +
+  scale_x_continuous(breaks = seq(0, 90, 5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  labs(
+    title = "Survived = 1",
+    x = "age",
+    y = "count"
+  ) +
+  geom_density(aes(y = ..count..))
+
+surv0_age + surv1_age
+```
+```{r}
+# 'Age' vs. 'Survived'
+# boxplot
+data_train %>%
+  filter(!is.na(Age)) %>% 
+  ggplot(aes(x = as.factor(Survived), y = Age)) +
+  geom_boxplot(aes(color = as.factor(Survived))) +
+  labs(
+    title = "'Age' vs. 'Survived'",
+    x = "Survived"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  scale_color_discrete(name = "Survived")
+```
+
+```{r}
+# 'Age' vs. 'Survived'
+# violin
+data_train %>%
+  filter(!is.na(Age)) %>% 
+  ggplot(aes(x = as.factor(Survived), y = Age)) +
+  geom_violin(aes(fill = as.factor(Survived)), alpha = 0.5) +
+  labs(
+    title = "'Age' vs. 'Survived'",
+    x = "Survived"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  scale_fill_discrete(name = "Survived")
+```
+
+```{r}
+# 'Age' vs. 'Survived'
+# swarmplot
+# library(ggbeeswarm)
+data_train %>%
+  filter(!is.na(Age)) %>% 
+  ggplot(aes(x = as.factor(Survived), y = Age)) +
+  geom_quasirandom(aes(color = as.factor(Survived)), alpha = 0.8) +
+  labs(
+    title = "'Age' vs. 'Survived'",
+    x = "Survived"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  scale_color_discrete(name = "Survived")
+```
+
+```{r}
+# 'Age' vs. 'Survived'
+# swarmplot + violin + boxplot
+data_train %>%
+  filter(!is.na(Age)) %>% 
+  ggplot(aes(x = as.factor(Survived), y = Age)) +
+  geom_quasirandom(aes(color = as.factor(Survived)), alpha = 1) +
+  geom_violin(size = 1, fill = NA) +
+  geom_boxplot(fill = NA, width = 0.2, size = 0.5) +
+  labs(
+    title = "'Age' vs. 'Survived'",
+    x = "Survived"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  scale_color_discrete(name = "Survived", labels = c("notSurv", "Surv")) +
+  scale_x_discrete(labels = c("notSurv", "Surv"))
+```
+
+```{r}
+# 'Age' vs. 'Survived'
+# boxplot
+data_train %>%
+  filter(!is.na(Age)) %>% 
+  ggplot(aes(x = as.factor(Pclass), y = Age)) +
+  geom_boxplot(aes(fill = as.factor(Survived)), alpha = 0) +
+  geom_beeswarm(aes(color = as.factor(Survived)), alpha = 1, dodge.width = 0.8) +
+  labs(
+    title = "'Age' vs. 'Pclass' vs. 'Survived'",
+    x = "Pclass"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  scale_x_discrete(labels = c("class1", "class2", "class3")) +
+  scale_color_discrete(name = "Survived", labels = c("notSurv", "Surv"))
+```
+
+### 1.5.2 'Fare'
+
+```{r}
+# ggplot2
+data_train %>% 
+  ggplot(aes(x = Fare)) +
+  geom_histogram(bins = 100, fill = "#00BFC4", color = "black") +
+  scale_x_continuous(breaks = seq(0, 600, 50)) +
+  scale_y_continuous(breaks = seq(0, 300, 50)) +
+  labs(
+    title = "Fare",
+    x = "fare",
+    y = "count"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) + # center title
+  geom_rug(alpha = 0.5, size = 0.2)
+```
+
+```{r}
+# 'Fare' vs. 'Survived'
+data_train %>%
+  ggplot(aes(x = Fare)) +
+  geom_histogram(bins = 100, aes(fill = as.factor(Survived)), position = "dodge") +
+  scale_x_continuous(breaks = seq(0, 600, 50)) +
+  scale_y_continuous(breaks = seq(0, 300, 50)) +
+  labs(
+    title = "Fare",
+    x = "fare",
+    y = "count"
+    #fill = "Survived"
+  ) +
+  scale_fill_manual(name = "Survived", values=c("#FF6C90", "#00BFC4"), labels = c("0", "1")) +
+  theme(plot.title = element_text(hjust = 0.5)) + # center title
+  geom_rug(alpha = 0.5, size = 0.2) +
+  geom_density(aes(y = ..count.., fill = as.factor(Survived)), alpha = 0.7)
+```
+
+### 1.5.3 Comprehensive
+
+```{r}
+# correlation matrix of continuous variables
+data_train %>%
+  filter(!is.na(Age)) %>% 
+  select(Age, SibSp, Parch, Fare) %>% 
+  cor()
+```
+
+```{r}
+# library(corrplot)
+data_train %>%
+  filter(!is.na(Age)) %>% 
+  select(Age, SibSp, Parch, Fare) %>% 
+  cor() %>% 
+  corrplot.mixed(lower.col = "black", upper = "square")
+```
+
+
+```{r}
+# facet grid
+data_train %>%
+  filter(!is.na(Age)) %>% 
+  ggplot(aes(x = as.factor(Survived), y = Age)) +
+  geom_quasirandom(aes(color = as.factor(Survived)), alpha = 0.8) +
+  labs(
+    title = "'Age' vs. 'Survived' by 'Sex' and 'Pclass'",
+    x = "Survived"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  scale_color_discrete(name = "Survived") +
+  facet_grid(Pclass ~ Sex,
+             labeller = label_both)
+```
+
+
+
+
+
+
